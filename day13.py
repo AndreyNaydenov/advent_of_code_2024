@@ -37,12 +37,37 @@ def choose_best_solution(machine, solutions):
         if cost < current_best_cost:
             current_best_cost = cost
             current_best = s
-    print(f"Best {current_best}, {current_best_cost}")
+    # print(f"Best {current_best}, {current_best_cost}")
     return current_best, current_best_cost
+
+def is_positive_int(num):
+    if not num.is_integer(): return False
+    if num < 0: return False
+    return True
+
+def solve_machine(machine):
+    a, b, prize = machine
+    ax, ay = a
+    bx, by = b
+    px, py = prize
+    # using the math and linear algebra we get equation system:
+    # ax * an + bx * bn = px
+    # ay * an + by * bn = py
+    # after solving the equation we get formula
+    an = (py*bx-px*by)/(ay*bx-ax*by)
+    # print(f"{an=}")
+    if not is_positive_int(an): return
+    bn = (px-ax*an)/bx
+    # print(f"{bn=}")
+    if not is_positive_int(bn): return
+
+    # calc cost
+    cost = int(an) * 3 + int(bn)
+    return cost
 
 def part1(data):
     summ = 0
-    for machine in tqdm(data):
+    for machine in data:
         solutions = get_all_solutions(machine)
         if not solutions: continue
         solution, cost = choose_best_solution(machine, solutions)
@@ -51,13 +76,13 @@ def part1(data):
 
 def part2(data):
     summ = 0
-    for machine in tqdm(data):
+    for machine in data:
+        # add 10000000000000 to coords
         prize = machine[2]
         prize += 10000000000000
-        solutions = get_all_solutions(machine, limit=1000000000000)
-        if not solutions: continue
-        solution, cost = choose_best_solution(machine, solutions)
-        summ += cost
+        cost = solve_machine(machine)
+        if cost:
+            summ += cost
     return summ
 
 def main():
@@ -66,8 +91,8 @@ def main():
     # print(data)
     
     #PART1
-    # result1 = part1(data)
-    # print(f"Part1: {result1}")
+    result1 = part1(data)
+    print(f"Part1: {result1}")
     
     #PART2
     result2 = part2(data)
