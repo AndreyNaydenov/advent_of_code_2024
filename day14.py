@@ -1,6 +1,5 @@
 import sys
 import re
-import time
 import numpy as np
 import operator
 from copy import deepcopy
@@ -67,18 +66,14 @@ def place_robots_on_grid(field_shape, robots, count=True):
 def part1(data, shape):
     time = 100 #seconds
     finish_positions = []
-    
-    print(place_robots_on_grid(shape, data))
 
-    # each robot can be automatically counted,
     for robot in data:
         emulate_robot(shape, robot, time)
         pos = tuple(robot[0])
         finish_positions.append(pos)
 
     grid = place_positions_on_grid(shape, finish_positions)
-    v_mid = shape[0] // 2
-    h_mid = shape[1] // 2
+    v_mid, h_mid = shape[0] // 2, shape[1] // 2
     subgrids = (
         grid[0:v_mid,0:h_mid],
         grid[v_mid+1:,0:h_mid],
@@ -88,64 +83,6 @@ def part1(data, shape):
     # sum and multiply subgrids
     res = reduce(operator.mul, (grid.sum() for grid in subgrids))
     return int(res)
-
-def in_bounds(data, coord):
-    il, jl = data.shape
-    if coord[0] < 0 or coord[0] >= il: return False
-    if coord[1] < 0 or coord[1] >= jl: return False
-    return True
-
-def get_adjacent_coords(data, coord, all_coords=False):
-    adjacent = (
-        (coord[0] - 1, coord[1]),
-        (coord[0] + 1, coord[1]),
-        (coord[0], coord[1] - 1),
-        (coord[0], coord[1] + 1)
-    )
-    return [c for c in adjacent if in_bounds(data, c) or all_coords ]
-
-def find_region(data, current_coord):
-    coords_checked = set()
-    region = set()
-    value = bool(data[*current_coord])
-    next_cells_to_check = [current_coord]
-    while next_cells_to_check:
-        coord = next_cells_to_check.pop(0)
-        if coord in coords_checked:
-            #already was on that cell, skip
-            continue
-        coords_checked.add(coord)
-        current_value = bool(data[*coord])
-        if current_value == value:
-            region.add(coord)
-        else:
-            continue
-        for cell in get_adjacent_coords(data, coord):
-            next_cells_to_check.append(cell)
-    # print(f"Found region {letter}, size {len(region)}, {region}")
-    return region
-
-def is_part_of_some_region(regions, coord):
-    for region in regions:
-        if coord in region:
-            return True
-    return False
-
-def get_regions(data):
-    regions = []
-    il, jl = data.shape
-    for i in range(il):
-        for j in range(jl):
-            current_coord = (i, j)
-            if data[*current_coord] == 0:
-                # print("skipping 0")
-                continue
-            # check that current coord is not part of found region
-            if is_part_of_some_region(regions, current_coord):
-                continue
-            region = find_region(data, current_coord)
-            regions.append(region)
-    return regions
 
 def part2(data, shape):
     max_time = 10000 #seconds
