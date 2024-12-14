@@ -17,29 +17,6 @@ def parse():
         data.append((a, b, prize))
     return data
 
-def get_all_solutions(machine, limit=101):
-    a, b, prize = machine
-    possible_solutions = []
-    for ax in range(limit):
-        for bx in range(limit):
-            res = a * ax + b * bx
-            # print(res, prize)
-            if (res == prize).all():
-                possible_solutions.append((ax, bx))
-    return possible_solutions
-
-def choose_best_solution(machine, solutions):
-    current_best = ()
-    current_best_cost = 500
-    for s in solutions:
-        ax, bx = s
-        cost = ax * 3 + bx
-        if cost < current_best_cost:
-            current_best_cost = cost
-            current_best = s
-    # print(f"Best {current_best}, {current_best_cost}")
-    return current_best, current_best_cost
-
 def is_positive_int(num):
     if not num.is_integer(): return False
     if num < 0: return False
@@ -68,10 +45,9 @@ def solve_machine(machine):
 def part1(data):
     summ = 0
     for machine in data:
-        solutions = get_all_solutions(machine)
-        if not solutions: continue
-        solution, cost = choose_best_solution(machine, solutions)
-        summ += cost
+        cost = solve_machine(machine)
+        if cost:
+            summ += cost
     return summ
 
 def part2(data):
@@ -88,7 +64,6 @@ def part2(data):
 def main():
     #parse stdin
     data = parse()
-    # print(data)
     
     #PART1
     result1 = part1(data)
