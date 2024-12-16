@@ -21,17 +21,13 @@ def get_next_direction(direction):
         case "v": return "<"
     
 def get_graph(data):
-    graph = nx.Graph()
+    graph = nx.DiGraph()
     possible_coords = np.where(data != "#")
     possible_coords = list(tuple(c) for c in np.vstack(possible_coords).T)
 
     possible_directions = ["<", "^", ">", "v"]
     
     for coord in possible_coords:
-        # add nodes with all possible directions
-        for d in possible_directions:
-            graph.add_node((coord, d))
-        # add edges to change directions
         adjacent = get_adjacent_coords(data, coord, include_direction=True)
         for d in possible_directions:
             edge = (
@@ -66,10 +62,10 @@ def part1(data):
 
     start_direction = ">"
     graph = get_graph(data)
+    print(graph)
 
     path = nx.shortest_path(graph, start_state, (tuple(end_pos), "^"), weight="weight")
     weight = nx.path_weight(graph, path, weight="weight")
-    # print(weight)
     add_path_to_grid(data, path)
     print_grid(data)
     return weight
@@ -81,8 +77,10 @@ def part2(data):
     end_pos = get_pos(data, "E")
 
     graph = get_graph(data)
-    paths = nx.all_shortest_paths(graph, start_state, (tuple(end_pos), "^"), weight="weight", method="bellman-ford")
+    print(graph)
+    paths = nx.all_shortest_paths(graph, start_state, (tuple(end_pos), "^"), weight="weight")
 
+    # print(len(tuple(paths)))
     return len(set([x[0] for p in paths for x in p]))
 
 def main():
