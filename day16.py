@@ -1,0 +1,102 @@
+import sys
+from copy import deepcopy
+from pprint import pprint
+import numpy as np
+from util import print_grid, get_pos, get_adjacent_coords
+import networkx as nx
+
+def parse():
+    data = []
+    # For matrix data
+    for line in sys.stdin:
+        cells = list(line.strip())
+        data.append(cells)
+    return data
+
+def get_next_direction(direction):
+     match direction:
+        case "<": return "^"
+        case "^": return ">"
+        case ">": return "v"
+        case "v": return "<"
+    
+def get_graph(data):
+    graph = nx.Graph()
+    possible_coords = np.where(data != "#")
+    possible_coords = list(tuple(c) for c in np.vstack(possible_coords).T)
+
+    possible_directions = ["<", "^", ">", "v"]
+    
+    for coord in possible_coords:
+        # add nodes with all possible directions
+        for d in possible_directions:
+            graph.add_node((coord, d))
+        # add edges to change directions
+        adjacent = get_adjacent_coords(data, coord, include_direction=True)
+        for d in possible_directions:
+            edge = (
+                (coord, d),
+                (coord, get_next_direction(d)),
+                {'weight': 1000}
+            )
+            graph.add_edges_from([edge])
+            for adj_coord, direction in adjacent:
+                if data[*adj_coord] == "#": continue
+                if direction == d:
+                    edge = (
+                        (coord, d),
+                        (tuple(adj_coord), d),
+                        {'weight': 1}
+                    )
+                    graph.add_edges_from([edge])
+    return graph
+
+def add_path_to_grid(grid, path):
+    for coord, _ in path:
+        grid[*coord] = "O"
+    return grid
+
+def count_places(grid):
+    return len(grid[grid == "O"])
+    
+def part1(data):
+    start_pos = get_pos(data, "S")
+    start_state = (tuple(start_pos), ">")
+    end_pos = get_pos(data, "E")
+
+    start_direction = ">"
+    graph = get_graph(data)
+
+    path = nx.shortest_path(graph, start_state, (tuple(end_pos), "^"), weight="weight")
+    weight = nx.path_weight(graph, path, weight="weight")
+    # print(weight)
+    add_path_to_grid(data, path)
+    print_grid(data)
+    return weight
+
+def part2(data):
+    start_direction = ">"
+    start_pos = get_pos(data, "S")
+    start_state = (tuple(start_pos), start_direction)
+    end_pos = get_pos(data, "E")
+
+    graph = get_graph(data)
+    paths = nx.all_shortest_paths(graph, start_state, (tuple(end_pos), "^"), weight="weight", method="bellman-ford")
+
+    return len(set([x[0] for p in paths for x in p]))
+
+def main():
+    #parse stdin
+    data = parse()
+    data = np.array(data)
+    part2_data = deepcopy(data)
+    
+    #PART1
+    result1 = part1(data)
+    print(f"Part1: {result1}")
+    
+    #PART2
+    result2 = part2(part2_data)
+    print(f"Part2: {result2}")
+
+main()
