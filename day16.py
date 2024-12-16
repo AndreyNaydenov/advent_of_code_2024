@@ -20,8 +20,11 @@ def get_next_direction(direction):
         case ">": return "v"
         case "v": return "<"
     
-def get_graph(data):
-    graph = nx.DiGraph()
+def get_graph(data, directional=False):
+    if directional:
+        graph = nx.DiGraph()
+    else:
+        graph = nx.Graph()
     possible_coords = np.where(data != "#")
     possible_coords = list(tuple(c) for c in np.vstack(possible_coords).T)
 
@@ -46,14 +49,6 @@ def get_graph(data):
                     )
                     graph.add_edges_from([edge])
     return graph
-
-def add_path_to_grid(grid, path):
-    for coord, _ in path:
-        grid[*coord] = "O"
-    return grid
-
-def count_places(grid):
-    return len(grid[grid == "O"])
     
 def part1(data):
     start_pos = get_pos(data, "S")
@@ -62,12 +57,10 @@ def part1(data):
 
     start_direction = ">"
     graph = get_graph(data)
-    print(graph)
+    # print(graph)
 
     path = nx.shortest_path(graph, start_state, (tuple(end_pos), "^"), weight="weight")
     weight = nx.path_weight(graph, path, weight="weight")
-    add_path_to_grid(data, path)
-    print_grid(data)
     return weight
 
 def part2(data):
@@ -76,11 +69,9 @@ def part2(data):
     start_state = (tuple(start_pos), start_direction)
     end_pos = get_pos(data, "E")
 
-    graph = get_graph(data)
-    print(graph)
+    graph = get_graph(data, directional=True)
+    # print(graph)
     paths = nx.all_shortest_paths(graph, start_state, (tuple(end_pos), "^"), weight="weight")
-
-    # print(len(tuple(paths)))
     return len(set([x[0] for p in paths for x in p]))
 
 def main():
